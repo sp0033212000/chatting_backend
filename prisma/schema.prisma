@@ -1,0 +1,25 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+    id          String              @unique(map: "user_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+    name        String
+    email       String              @unique(map: "user_email")
+    pictureUrl  String?
+    issuer      UserAuthIssuer?
+    accessToken String?             @unique(map: "user_access_token")
+    issuerToken String?             @unique(map: "user_issuer_token")
+}
+
+enum UserAuthIssuer {
+    GOOGLE
+}
