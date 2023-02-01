@@ -1,0 +1,11 @@
+steps:
+  - name: "gcr.io/cloud-builders/docker"
+    args: [ 'build',"--network=cloudbuild","--tag=asia.gcr.io/$PROJECT_ID/chatting-backend-staging", "--file=./Dockerfile.staging",'.' ]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'push', 'asia.gcr.io/$PROJECT_ID/chatting-backend-staging' ]
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [ 'run', 'deploy', 'chatting-backend-staging', '--image', 'asia.gcr.io/$PROJECT_ID/chatting-backend-staging', '--region', 'asia-east1' ]
+images:
+  - "asia.gcr.io/$PROJECT_ID/chatting-backend-staging"
+timeout: 1200s
