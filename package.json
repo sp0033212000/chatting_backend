@@ -18,9 +18,11 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "env:prod": "NODE_ENV=production  ts-node createSecret.ts",
+    "env:staging": "NODE_ENV=staging  ts-node createSecret.ts",
     "prisma-push:dev": "NODE_ENV=development  dotenv -e .env -e .env.development npx prisma db push",
     "prisma-push:staging": "NODE_ENV=staging dotenv -e .env -e .env.staging npx prisma db push",
-    "prisma-push:prod": "NODE_ENV=prod dotenv -e .env -e .env.prod  npx prisma db push",
+    "prisma-push:prod": "NODE_ENV=production dotenv -e .env -e .env.production  npx prisma db push",
     "sync-prisma-type": "rm -rf ./node_modules/.prisma/client && npx prisma generate"
   },
   "dependencies": {
@@ -43,6 +45,7 @@
     "unique-username-generator": "^1.1.3"
   },
   "devDependencies": {
+    "@google-cloud/secret-manager": "^4.2.0",
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
     "@nestjs/testing": "^9.0.0",
