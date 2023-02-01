@@ -31,9 +31,9 @@ async function bootstrap() {
 
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(8888, () => {
+  await app.listen(8080, () => {
     console.log(
-      `⚡️[server]: Server is running at http://localhost:${8888}\n🌍[environment]: ${
+      `⚡️[server]: Server is running at http://localhost:${8080}\n🌍[environment]: ${
         process.env.NODE_ENV
       }`,
     );
