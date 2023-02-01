@@ -18,4 +18,4 @@ RUN npx prisma generate
 COPY . ./
 RUN yarn run env:staging
 RUN yarn run build
-CMD [ "sh", "-c", "NODE_ENV=staging yarn run start:prod"]
+CMD [ "sh", "-c", "yarn run start:staging"]
