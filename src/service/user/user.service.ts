@@ -43,11 +43,13 @@ export class UserService {
     return await this.prismaService.user.findMany(...args);
   }
 
-  async getUser(): Promise<UserEntity | null> {
+  async getUser(): Promise<UserEntity> {
     const [_, type, token] =
       /^(Bearer)\s(.+)/.exec(
         this.request?.cookies?.['Authorization'] ??
-          this.request?.cookies?.['authorization'],
+          this.request?.cookies?.['authorization'] ??
+          this.request?.headers?.['authorization'] ??
+          this.request?.headers?.['Authorization'],
       ) ?? [];
 
     if (!token)

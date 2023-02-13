@@ -1,6 +1,11 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ValidGoogleOAuthDto } from './dto/valid-google-o-auth.dto';
 import { IssueGoogleOAuthEntity } from './entities/issue-google-o-auth.entity';
 import { ValidGoogleOAuthEntity } from './entities/valid-google-o-auth.entity';
@@ -16,12 +21,14 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Get('me')
   @ApiOkResponse({ type: UserProfileEntity })
+  @ApiOperation({ summary: 'getUserProfile 取得user profile' })
   getUserProfile(): Promise<UserProfileEntity> {
     return this.authService.getUserProfile();
   }
 
   @Get('google/issue')
   @ApiOkResponse({ type: IssueGoogleOAuthEntity })
+  @ApiOperation({ summary: 'issueGoogleOAuth 取得redirectUri' })
   issueGoogleOAuth(
     @Query('redirectUri') redirectUri: string,
   ): IssueGoogleOAuthEntity {
@@ -30,6 +37,7 @@ export class AuthController {
 
   @Post('google/valid')
   @ApiOkResponse({ type: ValidGoogleOAuthEntity })
+  @ApiOperation({ summary: 'validGoogleOAuth 驗證google oauth' })
   validGoogleOAuth(
     @Body() body: ValidGoogleOAuthDto,
   ): Promise<ValidGoogleOAuthEntity> {

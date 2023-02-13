@@ -11,15 +11,45 @@ datasource db {
 }
 
 model User {
-    id          String              @unique(map: "user_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    name        String
-    email       String              @unique(map: "user_email")
-    pictureUrl  String?
-    issuer      UserAuthIssuer?
-    accessToken String?             @unique(map: "user_access_token")
-    issuerToken String?             @unique(map: "user_issuer_token")
+  id                      String                    @unique(map: "user_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  twilioSid               String?
+  participantSid          String?
+  name                    String
+  email                   String                    @unique(map: "user_email")
+  pictureUrl              String?
+  issuer                  UserAuthIssuer?
+  accessToken             String?                   @unique(map: "user_access_token")
+  issuerToken             String?                   @unique(map: "user_issuer_token")
+  createdConversations    Conversation[]
+  participateConversation ParticipateConversation[]
 }
 
 enum UserAuthIssuer {
-    GOOGLE
+  GOOGLE
+}
+
+model Conversation {
+  id                      String                    @unique(map: "conversation_id") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  active                  Boolean                   @default(true)
+  participantIds          String[]
+  creatorId               String                    @db.Uuid
+  creator                 User                      @relation(fields: [creatorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  conversationSid         String
+  chatServiceSid          String
+  messagingServiceSid     String
+  roomSid                 String
+  roomName                String
+  createdAt               DateTime                  @default(now()) @db.Timestamp(6)
+  updatedAt               DateTime                  @default(now()) @db.Timestamp(6)
+  ParticipateConversation ParticipateConversation[]
+}
+
+model ParticipateConversation {
+  id             String       @unique() @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String       @db.Uuid
+  user           User         @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  conversationId String       @db.Uuid
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  token          String
+  active         Boolean      @default(true)
 }

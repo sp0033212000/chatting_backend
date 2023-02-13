@@ -9,10 +9,16 @@ import { PrismaService } from './service/prisma/prisma.service';
 import { UserService } from './service/user/user.service';
 import { AuthModule } from './resource/auth/auth.module';
 import { GoogleService } from './service/google/google.service';
+import { TwilioService } from './service/twilio/twilio.service';
+import { ConversationModule } from './resource/conversation/conversation.module';
 
 @Global()
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    AuthModule,
+    ConversationModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,
@@ -20,7 +26,14 @@ import { GoogleService } from './service/google/google.service';
     UserService,
     GoogleService,
     JwtService,
+    TwilioService,
   ],
-  exports: [PrismaService, JwtService, UserService, GoogleService],
+  exports: [
+    PrismaService,
+    JwtService,
+    UserService,
+    GoogleService,
+    TwilioService,
+  ],
 })
 export class AppModule {}

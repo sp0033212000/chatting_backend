@@ -5,6 +5,14 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class UserEntity implements User {
   @ApiProperty({ type: String })
   id: string;
+  @ApiProperty({
+    type: String,
+  })
+  twilioSid: string;
+  @ApiProperty({
+    type: String,
+  })
+  participantSid: string;
   @ApiProperty({ type: String })
   name: string;
   @ApiProperty({ type: String })

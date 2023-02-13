@@ -13,7 +13,7 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://axios-http.com/'],
+    origin: ['http://localhost:3005', 'https://axios-http.com/'],
     credentials: true,
   });
 
