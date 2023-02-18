@@ -37,7 +37,7 @@ model Conversation {
   conversationSid         String
   chatServiceSid          String
   messagingServiceSid     String
-  roomSid                 String
+  uniqueName              String                    @default("")
   roomName                String
   createdAt               DateTime                  @default(now()) @db.Timestamp(6)
   updatedAt               DateTime                  @default(now()) @db.Timestamp(6)

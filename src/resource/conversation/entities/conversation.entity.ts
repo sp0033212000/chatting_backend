@@ -34,7 +34,7 @@ export class ConversationEntity implements IConversation {
   @ApiProperty({
     type: String,
   })
-  roomSid: string;
+  uniqueName: string;
   @ApiProperty({
     type: String,
   })

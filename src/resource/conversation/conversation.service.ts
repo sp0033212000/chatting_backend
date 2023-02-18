@@ -23,16 +23,16 @@ export class ConversationService {
 
     const roomName = `${user.name}'s Room`;
 
-    const room = await this.twilio.video.rooms.create({
-      uniqueName: roomName,
-      type: 'group-small',
-    });
+    // const room = await this.twilio.video.rooms.create({
+    //   uniqueName: roomName,
+    //   type: 'group-small',
+    // });
 
     const { chatServiceSid, messagingServiceSid, friendlyName, sid } =
       await this.twilio.conversations.v1.conversations.create({
         friendlyName: roomName,
         timers: { closed: 'P1D' },
-        uniqueName: room.sid,
+        uniqueName: user.id,
       });
 
     return await this.prisma.conversation.create({
@@ -46,7 +46,7 @@ export class ConversationService {
         messagingServiceSid,
         roomName: friendlyName,
         conversationSid: sid,
-        roomSid: room.sid,
+        uniqueName: user.id,
       },
     });
   }
@@ -145,6 +145,18 @@ export class ConversationService {
     } else {
       if (!user.twilioSid) {
         const twilioUser = await this.twilio.createUser(user.id, user.name);
+
+        await this.userService.updateUser({
+          where: {
+            id: user.id,
+          },
+          data: {
+            twilioSid: twilioUser.sid,
+          },
+        });
+      }
+
+      if (!user.participantSid) {
         const participant = await this.twilio.conversations.v1
           .conversations(conversationSid)
           .participants.create({ identity: user.id });
@@ -154,7 +166,6 @@ export class ConversationService {
             id: user.id,
           },
           data: {
-            twilioSid: twilioUser.sid,
             participantSid: participant.sid,
           },
         });
