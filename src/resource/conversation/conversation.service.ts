@@ -5,10 +5,8 @@ import { UserService } from '../../service/user/user.service';
 import { ConversationEntity } from './entities/conversation.entity';
 import { JoinConversationDto } from './dto/join-conversation.dto';
 import { JoinConversationEntity } from './entities/join-conversation.entity';
-import {
-  ConversationParticipant,
-  FindConversationEntity,
-} from './entities/find-conversation.entity';
+import { FindConversationEntity } from './entities/find-conversation.entity';
+import { ConversationWebsocketGateway } from '../conversation-websocket/conversation-websocket.gateway';
 
 @Injectable()
 export class ConversationService {
@@ -16,17 +14,13 @@ export class ConversationService {
     private readonly prisma: PrismaService,
     private readonly twilio: TwilioService,
     private readonly userService: UserService,
+    private readonly ConversationWebsocketGateway: ConversationWebsocketGateway,
   ) {}
 
   async create(): Promise<ConversationEntity> {
     const user = await this.userService.getUser();
 
     const roomName = `${user.name}'s Room`;
-
-    // const room = await this.twilio.video.rooms.create({
-    //   uniqueName: roomName,
-    //   type: 'group-small',
-    // });
 
     const { chatServiceSid, messagingServiceSid, friendlyName, sid } =
       await this.twilio.conversations.v1.conversations.create({
@@ -35,7 +29,7 @@ export class ConversationService {
         uniqueName: user.id,
       });
 
-    return await this.prisma.conversation.create({
+    const conversation = await this.prisma.conversation.create({
       data: {
         creator: {
           connect: {
@@ -49,6 +43,11 @@ export class ConversationService {
         uniqueName: user.id,
       },
     });
+    this.ConversationWebsocketGateway.emitConversationCreated(
+      await this.convertConversationToFindConversation(conversation),
+    );
+
+    return conversation;
   }
 
   async findAll(): Promise<Array<FindConversationEntity>> {
@@ -60,25 +59,8 @@ export class ConversationService {
 
     return await Promise.all(
       conversations.map(
-        async ({
-          participantIds,
-          ...conversation
-        }): Promise<FindConversationEntity> => {
-          const participants = await this.prisma.user.findMany({
-            where: {
-              OR: participantIds.map((id) => ({ id })),
-            },
-          });
-
-          return {
-            ...conversation,
-            participants: participants.map(({ id, name, pictureUrl }) => ({
-              id,
-              name,
-              pictureUrl,
-            })),
-          };
-        },
+        async (conversation) =>
+          await this.convertConversationToFindConversation(conversation),
       ),
     );
   }
@@ -94,32 +76,14 @@ export class ConversationService {
   }
 
   async findOne(conversationId: string): Promise<FindConversationEntity> {
-    const { participantIds, ...conversation } =
-      await this.prisma.conversation.findUnique({
-        where: { id: conversationId },
-      });
+    const conversation = await this.prisma.conversation.findUnique({
+      where: { id: conversationId },
+    });
 
     if (!conversation.active)
       throw new HttpException('NOT_FOUND', HttpStatus.NOT_FOUND);
 
-    const participants = await this.userService
-      .findMany({
-        where: {
-          OR: participantIds.map((id) => ({ id })),
-        },
-      })
-      .then((data) =>
-        data.map<ConversationParticipant>(({ id, name, pictureUrl }) => ({
-          id,
-          name,
-          pictureUrl,
-        })),
-      );
-
-    return {
-      ...conversation,
-      participants,
-    };
+    return await this.convertConversationToFindConversation(conversation);
   }
 
   async joinConversation({
@@ -133,6 +97,7 @@ export class ConversationService {
       where: {
         userId: user.id,
         conversationId: id,
+        active: true,
       },
     });
 
@@ -177,7 +142,7 @@ export class ConversationService {
         room: roomName,
       });
 
-      await this.prisma.conversation.update({
+      const conversation = await this.prisma.conversation.update({
         where: {
           id: conversationId,
         },
@@ -186,6 +151,10 @@ export class ConversationService {
           updatedAt: new Date(),
         },
       });
+
+      this.ConversationWebsocketGateway.emitConversationUpdated(
+        await this.convertConversationToFindConversation(conversation),
+      );
 
       participate = await this.prisma.participateConversation.create({
         data: {
@@ -207,14 +176,12 @@ export class ConversationService {
       .participants(user.participantSid)
       .remove();
 
-    await this.twilio.removeUser(user.twilioSid);
     await this.userService.updateUser({
       where: {
         id: user.id,
       },
       data: {
         participantSid: null,
-        twilioSid: null,
         participateConversation: {
           updateMany: {
             where: {
@@ -250,8 +217,9 @@ export class ConversationService {
           participantIds: [],
         },
       });
+      this.ConversationWebsocketGateway.emitConversationClosed(conversation.id);
     } else {
-      await this.prisma.conversation.update({
+      const newConversation = await this.prisma.conversation.update({
         where: {
           id: conversation.id,
         },
@@ -261,8 +229,31 @@ export class ConversationService {
             .map(({ id }) => id),
         },
       });
+      this.ConversationWebsocketGateway.emitConversationUpdated(
+        await this.convertConversationToFindConversation(newConversation),
+      );
     }
 
     return { message: 'succeed' };
+  }
+
+  private async convertConversationToFindConversation({
+    participantIds,
+    ...conversation
+  }: ConversationEntity): Promise<FindConversationEntity> {
+    const participants = await this.prisma.user.findMany({
+      where: {
+        OR: participantIds.map((id) => ({ id })),
+      },
+    });
+
+    return {
+      ...conversation,
+      participants: participants.map(({ id, name, pictureUrl }) => ({
+        id,
+        name,
+        pictureUrl,
+      })),
+    };
   }
 }

@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ConversationService } from './conversation.service';
@@ -15,11 +16,13 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Request } from 'express';
 import { AuthGuard } from '../../auth.guard';
 import { JoinConversationDto } from './dto/join-conversation.dto';
 import { ConversationEntity } from './entities/conversation.entity';
 import { JoinConversationEntity } from './entities/join-conversation.entity';
 import { FindConversationEntity } from './entities/find-conversation.entity';
+import { GetConversationSocketUrlEntity } from './entities/get-conversation-socket-url.entity';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
@@ -55,6 +58,17 @@ export class ConversationController {
   @ApiOperation({ summary: 'reJoin 返回已加入conversation' })
   reJoin(): Promise<JoinConversationEntity> {
     return this.conversationService.reJoin();
+  }
+
+  @ApiResponse({
+    type: GetConversationSocketUrlEntity,
+  })
+  @Get('getSocketUrl')
+  @ApiOperation({ summary: 'getSocketUrl 取得socket Url' })
+  getSocketUrl(@Req() req: Request): GetConversationSocketUrlEntity {
+    return {
+      url: `${req.protocol}://${req.get('Host')}/ws-conversation`,
+    };
   }
 
   @ApiResponse({

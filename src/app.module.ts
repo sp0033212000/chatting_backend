@@ -11,6 +11,8 @@ import { AuthModule } from './resource/auth/auth.module';
 import { GoogleService } from './service/google/google.service';
 import { TwilioService } from './service/twilio/twilio.service';
 import { ConversationModule } from './resource/conversation/conversation.module';
+import { ConversationWebsocketModule } from './resource/conversation-websocket/conversation-websocket.module';
+import { ConversationWebsocketGateway } from './resource/conversation-websocket/conversation-websocket.gateway';
 
 @Global()
 @Module({
@@ -18,6 +20,7 @@ import { ConversationModule } from './resource/conversation/conversation.module'
     ConfigModule.forRoot({ isGlobal: true }),
     AuthModule,
     ConversationModule,
+    ConversationWebsocketModule,
   ],
   controllers: [AppController],
   providers: [
@@ -27,6 +30,7 @@ import { ConversationModule } from './resource/conversation/conversation.module'
     GoogleService,
     JwtService,
     TwilioService,
+    ConversationWebsocketGateway,
   ],
   exports: [
     PrismaService,
@@ -34,6 +38,7 @@ import { ConversationModule } from './resource/conversation/conversation.module'
     UserService,
     GoogleService,
     TwilioService,
+    ConversationWebsocketGateway,
   ],
 })
 export class AppModule {}

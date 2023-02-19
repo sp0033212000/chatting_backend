@@ -83,6 +83,7 @@ export class AuthService {
           email,
           name,
           time: new Date().getTime(),
+          application: 'chatting',
         },
         {
           secret: process.env.JWT_SECRET,

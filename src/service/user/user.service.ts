@@ -61,7 +61,13 @@ export class UserService {
       throw new HttpException('Invalid token type.', HttpStatus.UNAUTHORIZED);
     }
 
-    const info = this.jwtService.decode(token) as { email: string };
+    const info = this.jwtService.decode(token) as {
+      email: string;
+      application: string;
+    };
+
+    if (info?.application !== 'chatting')
+      throw new HttpException('User not found.', HttpStatus.UNAUTHORIZED);
 
     user = await this.findUnique({
       where: {

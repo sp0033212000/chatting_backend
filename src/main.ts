@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
+import { SocketAdapter } from './socket-adapter';
 
 const operationIdFactory = (controllerKey: string, methodKey: string) =>
   `${methodKey}`;
@@ -16,6 +17,7 @@ async function bootstrap() {
     origin: ['http://localhost:3005', 'https://axios-http.com/'],
     credentials: true,
   });
+  app.useWebSocketAdapter(new SocketAdapter(app));
 
   const config = new DocumentBuilder()
     .setTitle('Chatting APis')
